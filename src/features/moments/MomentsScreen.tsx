@@ -1,20 +1,29 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Plus } from 'lucide-react';
 import { Screen } from '@/components/layout/Screen';
-import { EmptyState, Skeleton } from '@/components/ui';
+import { EmptyState, Skeleton, Button } from '@/components/ui';
+import { MemoryCard } from '@/features/memories/MemoryCard';
+import { MemoryComposer } from '@/features/memories/MemoryComposer';
+import { MemoryDetail } from '@/features/memories/MemoryDetail';
+import { useSignedUrls } from '@/features/media/useSignedUrls';
 import { getSupabase } from '@/lib/supabase';
 import { useCosmos } from '@/providers/CosmosProvider';
+import { useAuth } from '@/providers/AuthProvider';
 import { useRealtimeTable } from '@/hooks/useRealtime';
-import { formatKey } from '@/utils/date';
-import type { Memory } from '@/types/database';
+import { todayKey } from '@/utils/date';
+import type { Memory, Song } from '@/types/database';
 
 /**
- * MOMENTS — the past (§14, §16). Postcards of what you've lived.
- * Foundation: a lazy, thumbnailed gallery with a carefully designed empty state.
- * Full authoring (photo upload, stickers, soundtrack) arrives in the Memories phase.
+ * MOMENTS — the past (§14, §16). Postcards of what you've lived, with authoring.
  */
 export function MomentsScreen() {
   const { cosmos } = useCosmos();
+  const { user } = useAuth();
   const [memories, setMemories] = useState<Memory[] | null>(null);
+
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [editing, setEditing] = useState<{ memory: Memory | null; song: Song | null } | null>(null);
+  const [detail, setDetail] = useState<Memory | null>(null);
 
   const load = useCallback(async () => {
     if (!cosmos) return;
@@ -32,44 +41,84 @@ export function MomentsScreen() {
   }, [load]);
   useRealtimeTable('memories', cosmos?.id, () => void load());
 
+  const paths = useMemo(() => (memories ?? []).map((m) => m.photo_url), [memories]);
+  const urls = useSignedUrls(paths);
+
+  function openNew() {
+    setEditing(null);
+    setComposerOpen(true);
+  }
+  function openEdit(memory: Memory, song: Song | null) {
+    setDetail(null);
+    setEditing({ memory, song });
+    setComposerOpen(true);
+  }
+
+  const editingPhotoUrl = editing?.memory?.photo_url ? urls[editing.memory.photo_url] : null;
+
   return (
-    <Screen title="Momentos" subtitle="Lo que hemos vivido">
+    <Screen
+      title="Momentos"
+      subtitle="Lo que hemos vivido"
+      right={
+        memories && memories.length > 0 ? (
+          <Button size="sm" variant="blossom" onClick={openNew}>
+            <Plus className="h-4 w-4" />
+            Recuerdo
+          </Button>
+        ) : undefined
+      }
+    >
       {memories === null ? (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Skeleton className="aspect-[3/4]" />
           <Skeleton className="aspect-[3/4]" />
         </div>
       ) : memories.length === 0 ? (
-        <EmptyState nedi="idle" message="Todavía no hay estrellas aquí." />
+        <EmptyState
+          nedi="idle"
+          message="Todavía no hay estrellas aquí."
+          action={
+            <Button variant="blossom" onClick={openNew}>
+              <Plus className="h-4 w-4" />
+              Crear el primero
+            </Button>
+          }
+        />
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {memories.map((m) => (
-            <article
+            <MemoryCard
               key={m.id}
-              className="group overflow-hidden rounded-xl border border-white/5 bg-surface"
-            >
-              <div className="aspect-[3/4] w-full overflow-hidden bg-surface-elevated">
-                {m.photo_url ? (
-                  <img
-                    src={m.photo_url}
-                    alt=""
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center px-3 text-center text-xs text-ink-faint">
-                    {m.story?.slice(0, 80) ?? 'Recuerdo'}
-                  </div>
-                )}
-              </div>
-              <div className="p-2">
-                <p className="text-[11px] text-ink-faint">{formatKey(m.date)}</p>
-                {m.story && <p className="mt-0.5 line-clamp-2 text-xs text-ink-soft">{m.story}</p>}
-              </div>
-            </article>
+              memory={m}
+              photoUrl={m.photo_url ? urls[m.photo_url] : null}
+              onClick={() => setDetail(m)}
+            />
           ))}
         </div>
       )}
+
+      {cosmos && user && (
+        <MemoryComposer
+          open={composerOpen}
+          onClose={() => setComposerOpen(false)}
+          cosmosId={cosmos.id}
+          authorId={user.id}
+          date={editing?.memory?.date ?? todayKey(cosmos.timezone)}
+          memory={editing?.memory ?? null}
+          existingSong={editing?.song ?? null}
+          initialPhotoUrl={editingPhotoUrl}
+          onSaved={load}
+        />
+      )}
+
+      <MemoryDetail
+        memory={detail}
+        open={detail !== null}
+        onClose={() => setDetail(null)}
+        onEdit={openEdit}
+        onDeleted={load}
+      />
     </Screen>
   );
 }
