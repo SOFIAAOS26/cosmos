@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { LogOut, Copy, Check, Pencil } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { LogOut, Copy, Check, Pencil, StickyNote, ChevronRight } from 'lucide-react';
 import { Screen } from '@/components/layout/Screen';
 import { Card, GlassCard, Avatar, Button, Input, Badge, ConfirmDialog, Divider } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
@@ -10,6 +11,7 @@ import { getSupabase } from '@/lib/supabase';
 import { identityOf } from '@/theme/identity';
 
 export function MoreScreen() {
+  const navigate = useNavigate();
   const { user, profile, signOut, refreshProfile } = useAuth();
   const { cosmos, members, me, partner } = useCosmos();
   const toast = useToast();
@@ -120,6 +122,22 @@ export function MoreScreen() {
             {!partner && <p className="text-sm text-ink-faint">Esperando a la segunda persona…</p>}
           </div>
         </Card>
+
+        {/* Notas */}
+        <button
+          type="button"
+          onClick={() => navigate('/notes')}
+          className="flex w-full items-center gap-3 rounded-xl border border-white/5 bg-surface px-4 py-3.5 text-left transition-colors hover:bg-surface-elevated"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blossom/10 text-blossom">
+            <StickyNote className="h-5 w-5" />
+          </span>
+          <span className="flex-1">
+            <span className="block text-ink">Notas</span>
+            <span className="block text-xs text-ink-faint">Inmediatas, programadas o selladas</span>
+          </span>
+          <ChevronRight className="h-4 w-4 text-ink-faint" />
+        </button>
 
         {/* Invite (only while alone) */}
         {alone && (

@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Pencil, Trash2, Sticker as StickerIcon, Check } from 'lucide-react';
 import { BottomSheet, Button, ConfirmDialog, Avatar } from '@/components/ui';
 import { SoundtrackCard } from './SoundtrackCard';
 import { getSongForMemory, deleteMemory } from './api';
+import { MemoryStickers } from '@/features/stickers/MemoryStickers';
+import { listGlobalStickers } from '@/features/stickers/api';
 import { useSignedUrl } from '@/features/media/useSignedUrls';
 import { useCosmos } from '@/providers/CosmosProvider';
 import { useToast } from '@/providers/ToastProvider';
 import { formatKey } from '@/utils/date';
 import { identityOf } from '@/theme/identity';
-import type { Memory, Song } from '@/types/database';
+import type { Memory, Song, Sticker } from '@/types/database';
 
 interface MemoryDetailProps {
   memory: Memory | null;
@@ -20,12 +22,24 @@ interface MemoryDetailProps {
 
 /** The full postcard — photo, micro-story, soundtrack, with edit/delete. */
 export function MemoryDetail({ memory, open, onClose, onEdit, onDeleted }: MemoryDetailProps) {
-  const { members } = useCosmos();
+  const { cosmos, members } = useCosmos();
   const toast = useToast();
   const [song, setSong] = useState<Song | null>(null);
   const [confirm, setConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [editStickers, setEditStickers] = useState(false);
+  const [stickerLib, setStickerLib] = useState<Sticker[]>([]);
   const photoUrl = useSignedUrl(memory?.photo_url);
+
+  const stickersById = useMemo(
+    () => Object.fromEntries(stickerLib.map((s) => [s.id, s])),
+    [stickerLib],
+  );
+
+  useEffect(() => {
+    if (open) void listGlobalStickers().then(setStickerLib);
+    if (!open) setEditStickers(false);
+  }, [open]);
 
   const loadSong = useCallback(async () => {
     if (!memory) return setSong(null);
@@ -61,11 +75,28 @@ export function MemoryDetail({ memory, open, onClose, onEdit, onDeleted }: Memor
         {memory && (
           <div className="space-y-4 py-2">
             {memory.photo_url && photoUrl && (
-              <img
-                src={photoUrl}
-                alt=""
-                className="max-h-[52vh] w-full rounded-xl object-cover"
-              />
+              <div className="relative overflow-hidden rounded-xl">
+                <img src={photoUrl} alt="" className="max-h-[52vh] w-full object-cover" />
+                {cosmos && (
+                  <MemoryStickers
+                    memoryId={memory.id}
+                    cosmosId={cosmos.id}
+                    editable={editStickers}
+                    stickersById={stickersById}
+                  />
+                )}
+              </div>
+            )}
+
+            {memory.photo_url && (
+              <button
+                type="button"
+                onClick={() => setEditStickers((v) => !v)}
+                className="inline-flex items-center gap-1.5 text-xs text-blossom hover:text-blossom-soft"
+              >
+                {editStickers ? <Check className="h-3.5 w-3.5" /> : <StickerIcon className="h-3.5 w-3.5" />}
+                {editStickers ? 'Listo' : 'Poner stickers'}
+              </button>
             )}
 
             {memory.story && (

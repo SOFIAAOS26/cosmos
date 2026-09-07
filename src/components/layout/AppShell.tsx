@@ -8,6 +8,7 @@ import { CalendarScreen } from '@/features/calendar/CalendarScreen';
 import { MomentsScreen } from '@/features/moments/MomentsScreen';
 import { FutureScreen } from '@/features/future/FutureScreen';
 import { MoreScreen } from '@/features/more/MoreScreen';
+import { NotesScreen } from '@/features/notes/NotesScreen';
 
 export function AppShell() {
   const isDesktop = useIsDesktop();
@@ -25,6 +26,7 @@ export function AppShell() {
             <Route path="/moments" element={<MomentsScreen />} />
             <Route path="/future" element={<FutureScreen />} />
             <Route path="/more" element={<MoreScreen />} />
+            <Route path="/notes" element={<NotesScreen />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AnimatePresence>
