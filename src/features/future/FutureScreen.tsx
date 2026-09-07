@@ -1,117 +1,132 @@
-import { useCallback, useEffect, useState } from 'react';
-import { MapPin, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Pencil } from 'lucide-react';
 import { Screen } from '@/components/layout/Screen';
-import { EmptyState, GlassCard, Card, Badge } from '@/components/ui';
+import { Button, EmptyState, Skeleton } from '@/components/ui';
 import { NextMomentCard } from '@/features/observatory/NextMomentCard';
-import { getSupabase } from '@/lib/supabase';
+import { EventCard } from '@/features/events/EventCard';
+import { EventComposer } from '@/features/events/EventComposer';
+import { EventDetail } from '@/features/events/EventDetail';
+import { CountdownComposer } from '@/features/countdowns/CountdownComposer';
+import { BucketList } from '@/features/bucket/BucketList';
+import { useUpcomingEvents } from '@/features/events/useEvents';
+import { usePrimaryCountdown } from '@/features/countdowns/usePrimaryCountdown';
 import { useCosmos } from '@/providers/CosmosProvider';
-import { useRealtimeTable } from '@/hooks/useRealtime';
-import { formatKey, todayKey } from '@/utils/date';
-import type { BucketItem, CosmosEvent } from '@/types/database';
+import { useAuth } from '@/providers/AuthProvider';
+import type { CosmosEvent } from '@/types/database';
 
-/**
- * FUTURE — plans & anticipation (§21–§24).
- * Foundation: the primary countdown, upcoming events, and the bucket list (reads).
- * Creating events/countdowns/tickets arrives in the Events phase.
- */
 export function FutureScreen() {
   const { cosmos } = useCosmos();
-  const [events, setEvents] = useState<CosmosEvent[] | null>(null);
-  const [bucket, setBucket] = useState<BucketItem[] | null>(null);
+  const { user } = useAuth();
+  const { events, loading, refresh } = useUpcomingEvents();
+  const { moment } = usePrimaryCountdown();
 
-  const load = useCallback(async () => {
-    if (!cosmos) return;
-    const supabase = getSupabase();
-    const [ev, bk] = await Promise.all([
-      supabase
-        .from('events')
-        .select('*')
-        .eq('cosmos_id', cosmos.id)
-        .gte('date', todayKey(cosmos.timezone))
-        .order('date', { ascending: true }),
-      supabase
-        .from('bucket_items')
-        .select('*')
-        .eq('cosmos_id', cosmos.id)
-        .order('created_at', { ascending: false }),
-    ]);
-    setEvents(ev.data ?? []);
-    setBucket(bk.data ?? []);
-  }, [cosmos]);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [editing, setEditing] = useState<CosmosEvent | null>(null);
+  const [detail, setDetail] = useState<CosmosEvent | null>(null);
+  const [countdownOpen, setCountdownOpen] = useState(false);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useRealtimeTable('events', cosmos?.id, () => void load());
-  useRealtimeTable('bucket_items', cosmos?.id, () => void load());
-
-  const emptyEverything = events?.length === 0 && bucket?.length === 0;
+  function openNew() {
+    setEditing(null);
+    setComposerOpen(true);
+  }
 
   return (
-    <Screen title="Futuro" subtitle="Lo que queremos vivir">
+    <Screen
+      title="Futuro"
+      subtitle="Lo que queremos vivir"
+      right={
+        <Button size="sm" variant="blossom" onClick={openNew}>
+          <Plus className="h-4 w-4" />
+          Evento
+        </Button>
+      }
+    >
       <div className="space-y-6">
-        <NextMomentCard />
+        {/* Próxima aventura */}
+        <section>
+          <NextMomentCard />
+          <button
+            type="button"
+            onClick={() => setCountdownOpen(true)}
+            className="mt-2 inline-flex items-center gap-1.5 text-xs text-ink-faint hover:text-ink"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            {moment?.source === 'countdown' ? 'Editar cuenta regresiva' : 'Fijar una cuenta regresiva'}
+          </button>
+        </section>
 
-        {emptyEverything ? (
-          <EmptyState nedi="observing" message="El futuro está esperando." />
-        ) : (
-          <>
-            {events && events.length > 0 && (
-              <section>
-                <h2 className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-faint">
-                  Próximos eventos
-                </h2>
-                <div className="space-y-2">
-                  {events.map((ev) => (
-                    <Card key={ev.id} className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-ink">{ev.title}</p>
-                        <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-ink-faint">
-                          <span>{formatKey(ev.date)}</span>
-                          {ev.time && (
-                            <span className="inline-flex items-center gap-1">
-                              <Clock className="h-3 w-3" /> {ev.time}
-                            </span>
-                          )}
-                          {ev.location && (
-                            <span className="inline-flex items-center gap-1">
-                              <MapPin className="h-3 w-3" /> {ev.location}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <Badge tone="aura">{ev.type}</Badge>
-                    </Card>
-                  ))}
-                </div>
-              </section>
-            )}
+        {/* Próximos eventos */}
+        <section>
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-faint">
+            Próximos eventos
+          </h2>
+          {loading && events.length === 0 ? (
+            <div className="space-y-2">
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
+            </div>
+          ) : events.length === 0 ? (
+            <EmptyState
+              nedi="observing"
+              message="El futuro está esperando."
+              action={
+                <Button variant="blossom" onClick={openNew}>
+                  <Plus className="h-4 w-4" />
+                  Crear un evento
+                </Button>
+              }
+            />
+          ) : (
+            <div className="space-y-2">
+              {events.map((ev) => (
+                <EventCard key={ev.id} event={ev} onClick={() => setDetail(ev)} />
+              ))}
+            </div>
+          )}
+        </section>
 
-            {bucket && bucket.length > 0 && (
-              <section>
-                <h2 className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-faint">
-                  Bucket list
-                </h2>
-                <GlassCard padded>
-                  <ul className="space-y-2">
-                    {bucket.map((b) => (
-                      <li key={b.id} className="flex items-center gap-2 text-sm">
-                        <span
-                          className={
-                            b.completed ? 'text-ink-faint line-through' : 'text-ink'
-                          }
-                        >
-                          {b.title}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </GlassCard>
-              </section>
-            )}
-          </>
-        )}
+        {/* Bucket list */}
+        <section>
+          <BucketList />
+        </section>
       </div>
+
+      {cosmos && user && (
+        <EventComposer
+          open={composerOpen}
+          onClose={() => setComposerOpen(false)}
+          cosmosId={cosmos.id}
+          createdBy={user.id}
+          timezone={cosmos.timezone}
+          event={editing}
+          onSaved={refresh}
+        />
+      )}
+
+      {cosmos && user && (
+        <CountdownComposer
+          open={countdownOpen}
+          onClose={() => setCountdownOpen(false)}
+          cosmosId={cosmos.id}
+          createdBy={user.id}
+          initialTitle={moment?.source === 'countdown' ? moment.title : undefined}
+          initialTargetIso={moment?.source === 'countdown' ? moment.target : null}
+          hasExisting={moment?.source === 'countdown'}
+          onSaved={refresh}
+        />
+      )}
+
+      <EventDetail
+        event={detail}
+        open={detail !== null}
+        onClose={() => setDetail(null)}
+        onEdit={(ev) => {
+          setDetail(null);
+          setEditing(ev);
+          setComposerOpen(true);
+        }}
+        onChanged={refresh}
+      />
     </Screen>
   );
 }
