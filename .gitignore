@@ -39,3 +39,7 @@ coverage
 # Supabase
 supabase/.branches
 supabase/.temp
+
+# Local reference build artifacts
+_to_delete/
+*.tgz
