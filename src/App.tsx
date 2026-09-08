@@ -9,6 +9,8 @@ import { AuthScreen } from '@/features/auth/AuthScreen';
 import { Onboarding } from '@/features/onboarding/Onboarding';
 import { AppShell } from '@/components/layout/AppShell';
 import { ErrorBoundary } from '@/components/system/ErrorBoundary';
+import { PWAReloadPrompt } from '@/components/system/PWAReloadPrompt';
+import { OfflineBanner } from '@/components/system/OfflineBanner';
 import { NEDI_ASSETS } from '@/components/nedi';
 
 /** Preload Nedi art so his states swap instantly. */
@@ -44,6 +46,7 @@ export function App() {
   if (!hasSupabaseConfig()) return <SetupScreen />;
   return (
     <ErrorBoundary>
+      <OfflineBanner />
       <ToastProvider>
         <AuthProvider>
           <CosmosProvider>
@@ -51,6 +54,7 @@ export function App() {
           </CosmosProvider>
         </AuthProvider>
       </ToastProvider>
+      <PWAReloadPrompt />
     </ErrorBoundary>
   );
 }

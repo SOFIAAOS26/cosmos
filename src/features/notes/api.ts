@@ -35,12 +35,32 @@ export async function createNote(input: NewNoteInput): Promise<Note> {
 /** Mark a sealed note as opened (§20) — the "scratch/open" reveal, not security. */
 export async function openNote(id: string): Promise<void> {
   const supabase = getSupabase();
+  const { data: note } = await supabase
+    .from('notes')
+    .select('author_id, cosmos_id')
+    .eq('id', id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from('notes')
     .update({ opened_at: new Date().toISOString() })
     .eq('id', id)
     .is('opened_at', null);
   if (error) throw error;
+
+  // Let the author know their sealed note was opened.
+  const uid = (await supabase.auth.getUser()).data.user?.id;
+  if (note && uid && note.author_id !== uid) {
+    await supabase
+      .from('notifications')
+      .insert({
+        cosmos_id: note.cosmos_id,
+        user_id: note.author_id,
+        type: 'note_unlocked',
+        payload: { note_id: id },
+      })
+      .then(undefined, () => undefined);
+  }
 }
 
 export async function deleteNote(id: string): Promise<void> {

@@ -114,11 +114,12 @@ supabase/migrations/ # SQL: schema, RLS, functions, storage
 
 - ✅ **Hito 1 — Foundation**: scaffold, design system, Nedi, auth, onboarding,
   cosmos model, Observatory, calendar + day sheet, full DB + RLS + storage, PWA.
-- ⏳ **Hito 2** — Memories authoring (postcards, photo upload, soundtrack)
-- ⏳ **Hito 3** — Task Radar: support, reactions, completion check-ins (realtime)
-- ⏳ **Hito 4** — Events + Ticket UI + Countdown editor + Bucket list
-- ⏳ **Hito 5** — Stickers canvas + Notes (immediate / scheduled / sealed)
-- ⏳ **Hito 6** — Full Nedi reactions, offline polish, QA & E2E
+- ✅ **Hito 2 — Memories**: postcards, compressed photo upload (signed URLs), soundtrack.
+- ✅ **Hito 3 — Task Radar**: support, reactions, completion check-ins (realtime).
+- ✅ **Hito 4 — Future**: events + ticket UI + countdown editor + bucket list.
+- ✅ **Hito 5 — Stickers + Notes**: sticker canvas on memories; immediate/scheduled/sealed notes.
+- ✅ **Hito 6 — Polish**: notifications center, Nedi reactions, PWA update prompt +
+  offline banner, route code-splitting, error boundary.
 
 ---
 
