@@ -102,6 +102,7 @@ export function AuthScreen() {
               setMode((m) => (m === 'signin' ? 'signup' : 'signin'));
               setError(null);
               setNotice(null);
+              setPassword('');
             }}
             className="mt-5 w-full text-center text-sm text-ink-soft transition-colors hover:text-ink"
           >

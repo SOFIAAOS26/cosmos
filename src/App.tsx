@@ -8,6 +8,7 @@ import { SetupScreen } from '@/features/setup/SetupScreen';
 import { AuthScreen } from '@/features/auth/AuthScreen';
 import { Onboarding } from '@/features/onboarding/Onboarding';
 import { AppShell } from '@/components/layout/AppShell';
+import { ErrorBoundary } from '@/components/system/ErrorBoundary';
 import { NEDI_ASSETS } from '@/components/nedi';
 
 /** Preload Nedi art so his states swap instantly. */
@@ -42,12 +43,14 @@ function Gate() {
 export function App() {
   if (!hasSupabaseConfig()) return <SetupScreen />;
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <CosmosProvider>
-          <Gate />
-        </CosmosProvider>
-      </AuthProvider>
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <AuthProvider>
+          <CosmosProvider>
+            <Gate />
+          </CosmosProvider>
+        </AuthProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
