@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import type {
   RealtimePostgresChangesPayload,
   RealtimeChannel,
@@ -28,6 +28,10 @@ export function useRealtimeTable<T extends TableName>(
 ): void {
   const handlerRef = useRef(handler);
   handlerRef.current = handler;
+  // A unique id per hook instance so multiple subscribers to the same table
+  // (e.g. two components on one screen) each get their own channel — Supabase
+  // rejects adding postgres_changes callbacks to an already-subscribed topic.
+  const instanceId = useId();
 
   useEffect(() => {
     if (!enabled || !cosmosId) return;
@@ -39,7 +43,7 @@ export function useRealtimeTable<T extends TableName>(
     const subscribe = () => {
       if (disposed) return;
       channel = supabase
-        .channel(`cosmos:${cosmosId}:${table}`)
+        .channel(`cosmos:${cosmosId}:${table}:${instanceId}`)
         .on<Row<T>>(
           'postgres_changes',
           { event: '*', schema: 'public', table: table as string, filter: `cosmos_id=eq.${cosmosId}` },
@@ -64,5 +68,5 @@ export function useRealtimeTable<T extends TableName>(
       if (channel) supabase.removeChannel(channel);
       channel = null;
     };
-  }, [table, cosmosId, enabled]);
+  }, [table, cosmosId, enabled, instanceId]);
 }
