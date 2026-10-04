@@ -15,6 +15,8 @@ import type {
   CheckinMood,
   SongPlatform,
   NotificationType,
+  PaperColor,
+  PaperIntention,
 } from './models';
 
 type Timestamp = string; // ISO 8601 (timestamptz)
@@ -237,6 +239,22 @@ export type Notification = {
   created_at: Timestamp;
 }
 
+export type MemoryPaper = {
+  id: UUID;
+  cosmos_id: UUID;
+  author_id: UUID;
+  recipient_id: UUID | null;
+  message: string;
+  image_url: string | null;
+  color: PaperColor;
+  intention: PaperIntention;
+  is_secret: boolean;
+  opened_count: number;
+  last_opened_at: Timestamp | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
 /* ------------------------- Insert / Update helpers ------------------------- */
 // For inserts, server-defaulted columns are optional.
 
@@ -352,6 +370,21 @@ export type Database = {
         Ins<Notification, 'id' | 'created_at' | 'read_at' | 'payload'>,
         Partial<Notification>
       >;
+      memory_papers: Table<
+        MemoryPaper,
+        Ins<
+          MemoryPaper,
+          | ServerCols
+          | 'recipient_id'
+          | 'image_url'
+          | 'color'
+          | 'intention'
+          | 'is_secret'
+          | 'opened_count'
+          | 'last_opened_at'
+        >,
+        Partial<MemoryPaper>
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -362,6 +395,10 @@ export type Database = {
       accept_invite: {
         Args: { p_code: string; p_identity: Identity };
         Returns: UUID;
+      };
+      open_memory_paper: {
+        Args: { p_id: UUID };
+        Returns: MemoryPaper;
       };
     };
     Enums: {

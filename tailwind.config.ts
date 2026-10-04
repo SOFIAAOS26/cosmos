@@ -47,6 +47,7 @@ export default {
           'Segoe UI',
           'sans-serif',
         ],
+        hand: ['"Caveat"', '"Segoe Script"', 'cursive'],
       },
       borderRadius: {
         xs: '0.375rem',

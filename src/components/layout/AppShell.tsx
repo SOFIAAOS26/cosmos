@@ -26,6 +26,9 @@ const MoreScreen = lazy(() =>
 const NotesScreen = lazy(() =>
   import('@/features/notes/NotesScreen').then((m) => ({ default: m.NotesScreen })),
 );
+const FrascoScreen = lazy(() =>
+  import('@/features/frasco/FrascoScreen').then((m) => ({ default: m.FrascoScreen })),
+);
 
 function ScreenFallback() {
   return (
@@ -50,6 +53,7 @@ export function AppShell() {
               <Route path="/" element={<Observatory />} />
               <Route path="/calendar" element={<CalendarScreen />} />
               <Route path="/moments" element={<MomentsScreen />} />
+              <Route path="/frasco" element={<FrascoScreen />} />
               <Route path="/future" element={<FutureScreen />} />
               <Route path="/more" element={<MoreScreen />} />
               <Route path="/notes" element={<NotesScreen />} />
