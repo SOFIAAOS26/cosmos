@@ -6,12 +6,14 @@ import { Starfield } from '@/components/brand/Starfield';
 import { MemoryJar } from './MemoryJar';
 import { PaperReveal } from './PaperReveal';
 import { PaperCreator } from './PaperCreator';
+import { PaperPicker } from './PaperPicker';
 import { useFrasco } from './useFrasco';
 import { pickPaper, openPaper } from './api';
 import { useCosmos } from '@/providers/CosmosProvider';
 import { useToast } from '@/providers/ToastProvider';
 import { usePrefersReducedMotion } from '@/hooks/useMediaQuery';
 import type { MemoryPaper } from '@/types/database';
+import type { PaperIntention } from '@/types/models';
 
 export function FrascoScreen() {
   const { members } = useCosmos();
@@ -25,16 +27,22 @@ export function FrascoScreen() {
   const [reveal, setReveal] = useState<MemoryPaper | null>(null);
   const [lastId, setLastId] = useState<string | null>(null);
   const [creatorOpen, setCreatorOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [lastIntention, setLastIntention] = useState<PaperIntention | null>(null);
 
   const nameFor = useMemo(() => {
     const m = new Map(members.map((mem) => [mem.user_id, mem.profile.display_name]));
     return (id: string) => m.get(id);
   }, [members]);
 
-  async function openOne() {
+  function openOne(intention: PaperIntention | null = lastIntention) {
     if (busy || count === 0) return;
-    const chosen = pickPaper(papers, { excludeId: lastId });
-    if (!chosen) return;
+    const chosen = pickPaper(papers, { intention, excludeId: lastId });
+    if (!chosen) {
+      toast.error('No hay papelitos para esa ocasión todavía.');
+      return;
+    }
+    setLastIntention(intention);
     setBusy(true);
     setGlow(true);
     setLidOpen(true);
@@ -87,7 +95,7 @@ export function FrascoScreen() {
             <Button
               size="lg"
               fullWidth
-              onClick={openOne}
+              onClick={() => setPickerOpen(true)}
               loading={busy}
               disabled={count === 0}
               variant="blossom"
@@ -109,7 +117,17 @@ export function FrascoScreen() {
         onClose={() => setReveal(null)}
         onAgain={() => {
           setReveal(null);
-          window.setTimeout(openOne, 250);
+          window.setTimeout(() => openOne(lastIntention), 250);
+        }}
+      />
+
+      <PaperPicker
+        open={pickerOpen}
+        papers={papers}
+        onClose={() => setPickerOpen(false)}
+        onPick={(intention) => {
+          setPickerOpen(false);
+          window.setTimeout(() => openOne(intention), reduce ? 0 : 200);
         }}
       />
 
