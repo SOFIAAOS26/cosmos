@@ -25,7 +25,7 @@ export function Screen({ title, subtitle, right, children, className, bleed }: S
       initial="hidden"
       animate="show"
       exit="exit"
-      className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col"
+      className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col overflow-x-hidden"
     >
       {(title || right) && (
         <header

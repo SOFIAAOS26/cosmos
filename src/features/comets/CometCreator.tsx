@@ -140,7 +140,7 @@ export function CometCreator({ open, onClose, onSent }: CometCreatorProps) {
               onChange={(e) => setLink(e.target.value)}
               inputMode="url"
               placeholder="Pega una canción, un reel, un TikTok…"
-              className="w-full bg-transparent py-3 text-sm text-ink outline-none placeholder:text-ink-faint/60"
+              className="w-full min-w-0 bg-transparent py-3 text-sm text-ink outline-none placeholder:text-ink-faint/60"
             />
           </div>
           {song && (

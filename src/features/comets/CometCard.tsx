@@ -69,7 +69,7 @@ export function CometCard({ comet, authorName }: { comet: Comet; authorName?: st
       )}
 
       {/* Note */}
-      {comet.note && <p className="font-hand text-2xl leading-snug text-ink">{comet.note}</p>}
+      {comet.note && <p className="font-hand text-2xl leading-snug text-ink break-words">{comet.note}</p>}
 
       <p className="mt-3 text-xs text-ink-faint">
         {format(new Date(comet.created_at), "d 'de' MMMM", { locale: es })}
