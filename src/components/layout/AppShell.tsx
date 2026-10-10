@@ -53,7 +53,7 @@ export function AppShell() {
     <div className="relative flex min-h-dvh w-full bg-void">
       {isDesktop && <Sidebar />}
 
-      <main className="relative flex-1">
+      <main className="relative flex-1 min-w-0">
         <Suspense fallback={<ScreenFallback />}>
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
