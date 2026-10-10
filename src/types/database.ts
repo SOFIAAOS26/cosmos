@@ -246,6 +246,19 @@ export type Thought = {
   created_at: Timestamp;
 };
 
+export type Comet = {
+  id: UUID;
+  cosmos_id: UUID;
+  author_id: UUID;
+  recipient_id: UUID;
+  note: string | null;
+  image_url: string | null;
+  link_url: string | null;
+  seen_at: Timestamp | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
+
 export type MemoryPaper = {
   id: UUID;
   cosmos_id: UUID;
@@ -397,6 +410,11 @@ export type Database = {
         Ins<Thought, 'id' | 'created_at'>,
         Partial<Thought>
       >;
+      comets: Table<
+        Comet,
+        Ins<Comet, ServerCols | 'note' | 'image_url' | 'link_url' | 'seen_at'>,
+        Partial<Comet>
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -411,6 +429,10 @@ export type Database = {
       open_memory_paper: {
         Args: { p_id: UUID };
         Returns: MemoryPaper;
+      };
+      mark_comet_seen: {
+        Args: { p_id: UUID };
+        Returns: Comet;
       };
     };
     Enums: {

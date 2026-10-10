@@ -5,6 +5,7 @@ import { BottomNav } from './BottomNav';
 import { Sidebar } from './Sidebar';
 import { Spinner } from '@/components/ui';
 import { useIsDesktop } from '@/hooks/useMediaQuery';
+import { CometWatcher } from '@/features/comets/CometWatcher';
 
 // Route-level code splitting (§34): only the Observatory ships in the initial
 // bundle; other areas load on demand.
@@ -28,6 +29,9 @@ const NotesScreen = lazy(() =>
 );
 const FrascoScreen = lazy(() =>
   import('@/features/frasco/FrascoScreen').then((m) => ({ default: m.FrascoScreen })),
+);
+const CometsScreen = lazy(() =>
+  import('@/features/comets/CometsScreen').then((m) => ({ default: m.CometsScreen })),
 );
 
 function ScreenFallback() {
@@ -54,6 +58,7 @@ export function AppShell() {
               <Route path="/calendar" element={<CalendarScreen />} />
               <Route path="/moments" element={<MomentsScreen />} />
               <Route path="/frasco" element={<FrascoScreen />} />
+              <Route path="/comets" element={<CometsScreen />} />
               <Route path="/future" element={<FutureScreen />} />
               <Route path="/more" element={<MoreScreen />} />
               <Route path="/notes" element={<NotesScreen />} />
@@ -64,6 +69,9 @@ export function AppShell() {
       </main>
 
       {!isDesktop && <BottomNav />}
+
+      {/* Comets unfold on open and in realtime, on any screen (§Hito8-C). */}
+      <CometWatcher />
     </div>
   );
 }

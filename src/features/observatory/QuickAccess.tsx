@@ -40,7 +40,7 @@ export function QuickAccess({ onThink, thinking = false, streak = 0 }: QuickAcce
       />
 
       {/* Cometas — Sprint C */}
-      <Tile label="Cometas" icon={Sparkles} tint="text-noir-soft" soon />
+      <Tile label="Cometas" icon={Sparkles} tint="text-noir-soft" onClick={() => navigate('/comets')} />
     </div>
   );
 }
