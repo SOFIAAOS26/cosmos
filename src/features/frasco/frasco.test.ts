@@ -52,3 +52,31 @@ describe('pickPaper (§28)', () => {
     expect(pickPaper([], {})).toBeNull();
   });
 });
+
+describe('pickPaper — new papers first (§28)', () => {
+  it('always returns a never-opened paper while one exists', () => {
+    const papers = [
+      paper('old', { opened_count: 7 }),
+      paper('new', { opened_count: 0 }),
+    ];
+    for (let i = 0; i < 25; i++) {
+      expect(pickPaper(papers, {})?.id).toBe('new');
+    }
+  });
+
+  it('respects the intention filter before prioritizing new ones', () => {
+    const papers = [
+      paper('new-laugh', { opened_count: 0, intention: 'laugh' }),
+      paper('old-sad', { opened_count: 9, intention: 'sad' }),
+    ];
+    // Only 'sad' is asked for, so the new 'laugh' one must not jump the filter.
+    expect(pickPaper(papers, { intention: 'sad' })?.id).toBe('old-sad');
+  });
+
+  it('falls back to weighted-random once every paper has been opened', () => {
+    const papers = [paper('a', { opened_count: 2 }), paper('b', { opened_count: 5 })];
+    const chosen = pickPaper(papers, {});
+    expect(chosen).not.toBeNull();
+    expect(['a', 'b']).toContain(chosen?.id);
+  });
+});

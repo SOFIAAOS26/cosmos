@@ -67,8 +67,9 @@ export function buildPile(papers: MemoryPaper[]): PaperSlot[] {
 
 /**
  * Choose a paper to open (§28): respect an intention filter, avoid immediately
- * repeating the last one, and gently favor papers opened fewer times — no heavy
- * algorithm. Secret papers the viewer can't see are already filtered by RLS.
+ * repeating the last one, show never-opened papers first, then gently favor the
+ * least-opened — no heavy algorithm. Secret papers the viewer can't see are
+ * already filtered by RLS.
  * (Pure function — kept out of api.ts so it imports no Supabase client.)
  */
 export function pickPaper(
@@ -85,12 +86,19 @@ export function pickPaper(
     candidates = pool.filter((p) => p.id !== opts.excludeId);
   }
 
-  const weights = candidates.map((p) => 1 / (1 + p.opened_count));
+  // New first: papers never opened take priority (picked uniformly among
+  // themselves) so a brand-new memory can't get buried under old favorites.
+  // Only once every candidate has been opened do we fall back to the gentle
+  // weighted-random that favors the least-opened ones.
+  const fresh = candidates.filter((p) => p.opened_count === 0);
+  const pool2 = fresh.length > 0 ? fresh : candidates;
+
+  const weights = pool2.map((p) => 1 / (1 + p.opened_count));
   const total = weights.reduce((a, b) => a + b, 0);
   let r = Math.random() * total;
-  for (let i = 0; i < candidates.length; i++) {
+  for (let i = 0; i < pool2.length; i++) {
     r -= weights[i]!;
-    if (r <= 0) return candidates[i]!;
+    if (r <= 0) return pool2[i]!;
   }
-  return candidates[candidates.length - 1]!;
+  return pool2[pool2.length - 1]!;
 }
