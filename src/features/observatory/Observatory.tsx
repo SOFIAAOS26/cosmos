@@ -10,6 +10,7 @@ import { TodayCard } from './TodayCard';
 import { NextMomentCard } from './NextMomentCard';
 import { CalendarPeek } from './CalendarPeek';
 import { QuickAccess } from './QuickAccess';
+import { SkyCard } from './SkyCard';
 import { InviteCard } from './InviteCard';
 import { TaskRadar } from '@/features/tasks/TaskRadar';
 import { NotificationsBell } from '@/features/notifications/NotificationsBell';
@@ -100,6 +101,7 @@ export function Observatory() {
 
         <NextMomentCard />
         <CalendarPeek />
+        {!alone && <SkyCard />}
         <QuickAccess
           onThink={
             alone

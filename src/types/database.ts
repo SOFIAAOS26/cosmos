@@ -259,6 +259,16 @@ export type Comet = {
   updated_at: Timestamp;
 };
 
+export type Constellation = {
+  id: UUID;
+  cosmos_id: UUID;
+  author_id: UUID;
+  name: string;
+  stars: string[]; // ordered star keys ("kind:id")
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
+
 export type MemoryPaper = {
   id: UUID;
   cosmos_id: UUID;
@@ -414,6 +424,11 @@ export type Database = {
         Comet,
         Ins<Comet, ServerCols | 'note' | 'image_url' | 'link_url' | 'seen_at'>,
         Partial<Comet>
+      >;
+      constellations: Table<
+        Constellation,
+        Ins<Constellation, ServerCols | 'stars'>,
+        Partial<Constellation>
       >;
     };
     Views: Record<string, never>;

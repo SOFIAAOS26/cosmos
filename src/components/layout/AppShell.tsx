@@ -33,6 +33,9 @@ const FrascoScreen = lazy(() =>
 const CometsScreen = lazy(() =>
   import('@/features/comets/CometsScreen').then((m) => ({ default: m.CometsScreen })),
 );
+const SkyScreen = lazy(() =>
+  import('@/features/sky/SkyScreen').then((m) => ({ default: m.SkyScreen })),
+);
 
 function ScreenFallback() {
   return (
@@ -59,6 +62,7 @@ export function AppShell() {
               <Route path="/moments" element={<MomentsScreen />} />
               <Route path="/frasco" element={<FrascoScreen />} />
               <Route path="/comets" element={<CometsScreen />} />
+              <Route path="/sky" element={<SkyScreen />} />
               <Route path="/future" element={<FutureScreen />} />
               <Route path="/more" element={<MoreScreen />} />
               <Route path="/notes" element={<NotesScreen />} />
