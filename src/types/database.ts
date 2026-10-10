@@ -239,6 +239,13 @@ export type Notification = {
   created_at: Timestamp;
 }
 
+export type Thought = {
+  id: UUID;
+  cosmos_id: UUID;
+  author_id: UUID;
+  created_at: Timestamp;
+};
+
 export type MemoryPaper = {
   id: UUID;
   cosmos_id: UUID;
@@ -384,6 +391,11 @@ export type Database = {
           | 'last_opened_at'
         >,
         Partial<MemoryPaper>
+      >;
+      thoughts: Table<
+        Thought,
+        Ins<Thought, 'id' | 'created_at'>,
+        Partial<Thought>
       >;
     };
     Views: Record<string, never>;

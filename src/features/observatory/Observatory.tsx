@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Screen } from '@/components/layout/Screen';
 import { Nedi } from '@/components/nedi';
 import { useAuth } from '@/providers/AuthProvider';
@@ -14,6 +14,9 @@ import { InviteCard } from './InviteCard';
 import { TaskRadar } from '@/features/tasks/TaskRadar';
 import { NotificationsBell } from '@/features/notifications/NotificationsBell';
 import { notificationText } from '@/features/notifications/api';
+import { useThinking } from '@/features/thinking/useThinking';
+import { ShootingStar } from '@/features/thinking/ShootingStar';
+import { SkyPulse } from '@/features/thinking/SkyPulse';
 import type { NediState } from '@/components/nedi';
 import type { Notification } from '@/types/database';
 
@@ -31,11 +34,35 @@ function greeting(): string {
  */
 export function Observatory() {
   const { profile, user } = useAuth();
-  const { cosmos, members } = useCosmos();
+  const { cosmos, members, partner } = useCosmos();
   const toast = useToast();
   const alone = members.length < 2;
   const today = cosmos ? todayKey(cosmos.timezone) : '';
   const [nediState, setNediState] = useState<NediState>('idle');
+  const [showStar, setShowStar] = useState(false);
+  const [blip, setBlip] = useState(0);
+
+  const celebrate = useCallback(() => {
+    setNediState('celebrating');
+    window.setTimeout(() => setNediState('idle'), 4000);
+  }, []);
+
+  const partnerName = partner?.profile.display_name ?? 'Alguien';
+
+  const thinking = useThinking({
+    onPartnerThought: () => {
+      toast.love(`💭 ${partnerName} está pensando en ti`);
+      setBlip((b) => b + 1);
+      celebrate();
+    },
+    onSincronia: () => {
+      setShowStar(true);
+      setBlip((b) => b + 1);
+      navigator.vibrate?.([10, 40, 10]);
+      toast.love('✦ Sincronía — los dos a la vez');
+      celebrate();
+    },
+  });
 
   // Nedi reacts to incoming notifications in realtime (§44) — briefly, never blocking.
   useRealtimeTable('notifications', cosmos?.id, (payload) => {
@@ -44,8 +71,7 @@ export function Observatory() {
     if (!row || row.user_id !== user?.id) return;
     const { emoji, text } = notificationText(row);
     toast.love(`${emoji} ${text}`);
-    setNediState('celebrating');
-    window.setTimeout(() => setNediState('idle'), 4000);
+    celebrate();
   });
 
   return (
@@ -64,7 +90,9 @@ export function Observatory() {
         </div>
       }
     >
-      <div className="space-y-4">
+      <div className="relative space-y-4">
+        <SkyPulse pulse={blip} />
+
         {alone && <InviteCard />}
         {!alone && <TodayCard />}
 
@@ -72,8 +100,21 @@ export function Observatory() {
 
         <NextMomentCard />
         <CalendarPeek />
-        <QuickAccess />
+        <QuickAccess
+          onThink={
+            alone
+              ? undefined
+              : () => {
+                  setBlip((b) => b + 1);
+                  void thinking.send();
+                }
+          }
+          thinking={thinking.sending}
+          streak={thinking.streak}
+        />
       </div>
+
+      <ShootingStar show={showStar} onDone={() => setShowStar(false)} />
     </Screen>
   );
 }
