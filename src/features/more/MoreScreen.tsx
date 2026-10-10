@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Copy, Check, Pencil, StickyNote, ChevronRight } from 'lucide-react';
+import { LogOut, Copy, Check, Pencil, StickyNote, ChevronRight, Languages, Music2, ArrowUpRight } from 'lucide-react';
 import { Screen } from '@/components/layout/Screen';
 import { Card, GlassCard, Avatar, Button, Input, Badge, ConfirmDialog, Divider } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
@@ -138,6 +138,44 @@ export function MoreScreen() {
           </span>
           <ChevronRight className="h-4 w-4 text-ink-faint" />
         </button>
+
+        {/* Nuestras otras apps */}
+        <div>
+          <p className="mb-2 px-1 text-xs uppercase tracking-widest text-ink-faint">Nuestras otras apps</p>
+          <div className="space-y-2">
+            {[
+              {
+                href: 'https://sofiaaos26.github.io/enediano-translator/',
+                icon: Languages,
+                title: 'Traductor de Enediano',
+                desc: 'El idioma oficial de la República de Enede',
+              },
+              {
+                href: 'https://sofiaaos26.github.io/whole-new-worlds/',
+                icon: Music2,
+                title: 'Whole New Worlds',
+                desc: 'Nuestro universo musical',
+              },
+            ].map(({ href, icon: Icon, title, desc }) => (
+              <a
+                key={href}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center gap-3 rounded-xl border border-white/5 bg-surface px-4 py-3.5 text-left transition-colors hover:bg-surface-elevated"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blossom/10 text-blossom">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-ink">{title}</span>
+                  <span className="block truncate text-xs text-ink-faint">{desc}</span>
+                </span>
+                <ArrowUpRight className="h-4 w-4 shrink-0 text-ink-faint" />
+              </a>
+            ))}
+          </div>
+        </div>
 
         {/* Invite (only while alone) */}
         {alone && (
