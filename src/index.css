@@ -19,13 +19,6 @@
     height: 100%;
   }
 
-  /* Never allow sideways scroll on mobile (a stray wide child can't push the UI). */
-  html,
-  body {
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-
   body {
     @apply bg-void text-ink font-sans antialiased;
     /* Prevent iOS rubber-band showing white behind the app shell */
