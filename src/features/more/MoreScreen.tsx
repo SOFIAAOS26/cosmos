@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Copy, Check, Pencil, StickyNote, ChevronRight, Languages, Music2, ArrowUpRight } from 'lucide-react';
+import { LogOut, Copy, Check, Pencil, StickyNote, ChevronRight, Languages, Music2, ArrowUpRight, Satellite } from 'lucide-react';
 import { Screen } from '@/components/layout/Screen';
 import { Card, GlassCard, Avatar, Button, Input, Badge, ConfirmDialog, Divider } from '@/components/ui';
 import { useAuth } from '@/providers/AuthProvider';
@@ -155,6 +155,12 @@ export function MoreScreen() {
                 icon: Music2,
                 title: 'Whole New Worlds',
                 desc: 'Nuestro universo musical',
+              },
+              {
+                href: 'https://singularity-five-ashen.vercel.app/',
+                icon: Satellite,
+                title: 'Singularity',
+                desc: 'La nave de NEDI · Cosmos: Anomalías',
               },
             ].map(({ href, icon: Icon, title, desc }) => (
               <a
